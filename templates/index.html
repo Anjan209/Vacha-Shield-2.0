@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacha-Shield | Deepfake Voice Detection</title>
+
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Background Animated Shapes (Glassmorphism Context) -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <main class="container">
+
+        <!-- Header -->
+        <header>
+            <div class="logo-box">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="url(#accent-gradient)"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="accent-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#00f2fe" />
+                            <stop offset="100%" stop-color="#4facfe" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+                <h1>Vacha-Shield</h1>
+            </div>
+            <p class="subtitle">AI Voice Deepfake Detection Engine</p>
+        </header>
+
+        <!-- Main Card Section -->
+        <section class="glass-card upload-section">
+
+            <div id="drop-zone" class="drop-zone">
+                <div class="icon-pulse">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <h2>Upload Audio Signature</h2>
+                <p>Drag & drop a <code>.wav</code> or <code>.mp3</code> file here, or click to browse.</p>
+                <input type="file" id="audio-input" accept=".wav,.mp3" hidden>
+                <button class="btn browse-btn" onclick="document.getElementById('audio-input').click()">Browse
+                    Files</button>
+
+                <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                    <h2>Or Listen Live</h2>
+                    <p>Sample the room acoustics via your laptop microphone.</p>
+                    <button id="record-btn" class="btn primary-btn glow"
+                        style="margin-top: 10px; padding: 12px 24px; font-size: 1.1rem;">Start Live Microphone
+                        Scan</button>
+                    <p id="recording-status" class="hidden"
+                        style="color: #00f2fe; margin-top: 10px; font-weight: bold; animation: pulse 1s infinite alternate;">
+                        Recording... Speak now. Click button again to STOP.</p>
+                </div>
+            </div>
+
+            <div id="selected-file-info" class="hidden file-info">
+                <p>Selected Data: <span id="filename-display" class="highlight">sample_audio.wav</span></p>
+
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                    <button id="download-recording-btn" class="btn hidden"
+                        style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">Download
+                        Audio</button>
+                    <button id="analyze-btn" class="btn primary-btn glow">Analyze Deepfake Signatures</button>
+                </div>
+
+                <!-- STAGE DEMO TOGGLE -->
+                <div style="margin-top: 20px; text-align: right; opacity: 0.3;">
+                    <label style="cursor: pointer; font-size: 0.8rem;">
+                        <input type="checkbox" id="demo-mode-toggle" value="true">
+                        Force AI Clone Detection
+                    </label>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Loading State -->
+        <div id="loader" class="hidden loader-container">
+            <div class="spinner"></div>
+            <p>Decoding Mel-Spectrogram & Processing CNN Arrays...</p>
+        </div>
+
+        <!-- Alert Banner (Hidden by Default) -->
+        <div id="alert-banner" class="hidden alert-banner warning">
+            <h1 class="alert-title">POSSIBLE AI VOICE DETECTED</h1>
+            <p>Vacha-Shield neural networks have identified high-probability synthetic artifacts.</p>
+        </div>
+
+        <div id="safe-banner" class="hidden alert-banner safe">
+            <h1 class="alert-title">VERIFIED HUMAN VOICE</h1>
+            <p>No synthetic speech artifacts detected in the audio signal.</p>
+        </div>
+
+        <!-- Results Analysis Dashboard -->
+        <section id="results-section" class="hidden results-dashboard">
+            <div class="glass-card result-card split">
+
+                <!-- Probabilities Side -->
+                <div class="probability-container">
+                    <h3>Deep Learning Analysis</h3>
+
+                    <div class="progress-wrapper">
+                        <div class="progress-labels">
+                            <span class="label-text">Human Classification Probability</span>
+                            <span id="human-score-text" class="score-text human-color">0.00%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="human-bar" class="progress-fill human-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-wrapper margin-top-lg">
+                        <div class="progress-labels">
+                            <span class="label-text">Deepfake / Synthetic Probability</span>
+                            <span id="synth-score-text" class="score-text danger-color">0.00%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="synth-bar" class="progress-fill danger-fill glow-red" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spectrogram Side -->
+                <div class="spectrogram-container">
+                    <h3>Acoustic Feature Extraction</h3>
+                    <div class="spectrogram-image-wrapper">
+                        <img id="spectrogram-img" src="" alt="Mel-Spectrogram Visualization">
+                    </div>
+                    <p class="footnote"><i>*Mel-Spectrograms mapped to 16kHz frequencies used to feed the PyTorch
+                            <code>AudioCNN</code> framework.</i></p>
+                </div>
+
+            </div>
+
+            <button id="reset-btn" class="btn secondary-btn" style="margin-top: 15px;">Scan Another File</button>
+
+            <!-- Feedback Loop -->
+            <div id="feedback-section" class="hidden glass-card"
+                style="margin-top: 2rem; text-align: center; border-color: rgba(0, 242, 254, 0.3);">
+                <h3 style="margin-bottom: 10px; color: #fff;">Help Train Vacha-Shield</h3>
+                <p style="margin-bottom: 15px; color: #a0aec0; font-size: 0.9rem;">Was this prediction correct? Label
+                    this audio to improve the model.</p>
+
+                <div style="display: flex; gap: 15px; justify-content: center;">
+                    <button id="btn-feedback-human" class="btn"
+                        style="background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; color: #2ecc71;">It was
+                        Human</button>
+                    <button id="btn-feedback-ai" class="btn"
+                        style="background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; color: #e74c3c;">It was
+                        AI</button>
+                </div>
+
+                <p id="feedback-thanks" class="hidden" style="margin-top: 15px; color: #00f2fe; font-weight: bold;">
+                    Thank you! Data saved for the next training epoch.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
